@@ -1,0 +1,1113 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Don Delixe - Premium luxury brand offering watches, bags, jewelry, and perfumes. Discover exclusive collections led by CEO Niyonsaba Derrick.">
+    <title>Don Delixe - Luxury Lifestyle</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Playfair Display', serif;
+        }
+
+        body {
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+            background: #f5f5f5;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(90deg, #1a1a1a, #2c2c2c);
+            color: #fff;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        nav .logo a {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f4c542;
+            text-decoration: none;
+            transition: transform 0.3s;
+        }
+
+        nav .logo a:hover {
+            transform: scale(1.05);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            align-items: center;
+        }
+
+        nav ul li {
+            margin-left: 1.5rem;
+            position: relative;
+        }
+
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            font-family: 'Roboto', sans-serif;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: #f4c542;
+        }
+
+        .mega-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #1a1a1a;
+            padding: 1rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            width: 300px;
+            border-radius: 5px;
+        }
+
+        .dropdown:hover .mega-menu {
+            display: block;
+        }
+
+        .mega-menu a {
+            display: block;
+            padding: 0.5rem;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .mega-menu a:hover {
+            background: #f4c542;
+            color: #1a1a1a;
+        }
+
+        .header-icons select {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: 'Roboto', sans-serif;
+            cursor: pointer;
+        }
+
+        .header-icons i:hover, .header-icons select:hover {
+            color: #f4c542;
+        }
+
+        /* News Ticker */
+        .news-ticker {
+            background: #f4c542;
+            color: #1a1a1a;
+            padding: 0.5rem;
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden;
+        }
+
+        .ticker-content {
+            display: inline-block;
+            animation: ticker 25s linear infinite;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .hero-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        .hero-content {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 3rem;
+            border-radius: 10px;
+            animation: fadeIn 1s ease;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .cta-button {
+            background: #f4c542;
+            color: #1a1a1a;
+            padding: 0.8rem 2rem;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .cta-button:hover {
+            background: #e0b33a;
+            transform: scale(1.1);
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 20px;
+            background: #f9f9f9;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .breadcrumb a {
+            color: #1a1a1a;
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .breadcrumb a:hover {
+            color: #f4c542;
+        }
+
+        /* Sections */
+        section {
+            padding: 5rem 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h2 {
+            font-size: 2.8rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #1a1a1a;
+        }
+
+        /* Media Styles */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .gallery-item img, .gallery-item video, .gallery-item iframe {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        .gallery-item:hover img, .gallery-item:hover video, .gallery-item:hover iframe {
+            transform: scale(1.05);
+        }
+
+        .video-carousel {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .video-item {
+            flex: 0 0 33.33%;
+            padding: 0 10px;
+        }
+
+        .video-nav {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .video-nav button {
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            margin: 0 0.5rem;
+            border-radius: 5px;
+        }
+
+        .video-nav button:hover {
+            background: #f4c542;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content:……
+
+        /* Product Styles */
+        .product-item {
+            flex: 0 0 25%;
+            padding: 0 10px;
+        }
+
+        .card {
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card img, .card video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .card .thumbnail-gallery {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .card .thumbnail-gallery img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .three-d-viewer {
+            width: 100%;
+            height: 150px;
+            margin: 1rem 0;
+        }
+
+        /* Quick View */
+        .quick-view-modal .modal-content {
+            max-width: 900px;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-view-modal .media {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .quick-view-modal .thumbnail-gallery {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .quick-view-modal .thumbnail-gallery img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .quick-view-details {
+            flex: 1;
+            min-width: 300px;
+            text-align: left;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            nav ul {
+                flex-direction: column;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                background: #1a1a1a;
+                width: 100%;
+                display: none;
+            }
+
+            nav ul.active {
+                display: flex;
+            }
+
+            .hamburger {
+                display: block;
+                cursor: pointer;
+                font-size: 1.5rem;
+                color: #fff;
+            }
+
+            .product-item, .video-item {
+                flex: 0 0 100%;
+            }
+
+            .hero-video {
+                display: none;
+            }
+
+            .hero {
+                background: url('https://images.unsplash.com/photo-1519167758481-83f550bb49b3') no-repeat center center/cover;
+            }
+
+            .quick-view-modal .modal-content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo"><a href="#home">Don Delixe</a></div>
+            <div class="hamburger">☰</div>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li class="dropdown">
+                    <a href="#shop">Shop</a>
+                    <div class="mega-menu">
+                        <a href="#shop">All Products</a>
+                        <a href="#shop">Watches</a>
+                        <a href="#shop">Bags</a>
+                        <a href="#shop">Jewelry</a>
+                        <a href="#shop">Perfumes</a>
+                    </div>
+                </li>
+                <li><a href="#collections">Collections</a></li>
+                <li><a href="#sustainability">Sustainability</a></li>
+                <li><a href="#vip">VIP Membership</a></li>
+                <li><a href="#press">Press</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#careers">Careers</a></li>
+                <li><a href="#store-locator">Store Locator</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="header-icons">
+                <i class="fas fa-search" onclick="alert('Search coming soon!')"></i>
+                <i class="fas fa-shopping-cart" onclick="alert('Cart coming soon!')"></i>
+                <select onchange="changeLanguage(this.value)">
+                    <option value="en">EN</option>
+                    <option value="fr">FR</option>
+                    <option value="es">ES</option>
+                    <option value="zh">ZH</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+
+    <!-- News Ticker -->
+    <div class="news-ticker">
+        <div class="ticker-content">
+            Winter Collection Launch Dec 10, 2025 | New Stores in Paris & Dubai | VIP Membership Now Includes Bespoke Services
+        </div>
+    </div>
+
+    <!-- Home Page -->
+    <section id="home" class="hero active">
+        <video class="hero-video" autoplay muted loop>
+            <source src="https://player.vimeo.com/external/430013557.hd.mp4?s=7f3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b3b" type="video/mp4">
+        </video>
+        <div class="hero-content">
+            <h1>Elevate Your Style with Don Delixe</h1>
+            <p>Crafted under the vision of CEO Niyonsaba Derrick</p>
+            <div class="cta-buttons">
+                <a href="#shop" class="cta-button">Shop Now</a>
+                <a href="#vip" class="cta-button">Join VIP Club</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Secondary Hero -->
+    <section class="secondary-hero">
+        <h2>Live the Don Delixe Lifestyle</h2>
+        <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+        <div class="gallery-grid" style="margin-top: 2rem;">
+            <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1523275335684-37898b6baf30')">
+                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30" alt="Luxury Watch" loading="lazy">
+            </div>
+            <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1590874103328-eac38a683ce7')">
+                <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7" alt="Designer Bag" loading="lazy">
+            </div>
+            <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1515562141207-7a88fb7ce338')">
+                <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338" alt="Jewelry" loading="lazy">
+            </div>
+            <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1587017531366-9b7f585e16c8')">
+                <img src="https://images.unsplash.com/photo-1587017531366-9b7f585e16c8" alt="Perfume" loading="lazy">
+            </div>
+            <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1511795409834-ef04bbd61622')">
+                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622" alt="Event" loading="lazy">
+            </div>
+            <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1503614472-8c93ca36fc60')">
+                <img src="https://images.unsplash.com/photo-1503614472-8c93ca36fc60" alt="Lifestyle" loading="lazy">
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="featured-products">
+        <h2>Signature Collection</h2>
+        <div class="video-carousel">
+            <div class="video-track">
+                <div class="video-item">
+                    <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="9bZkp7q19f0"></video>
+                </div>
+                <div class="video-item">
+                    <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+                </div>
+                <div class="video-item">
+                    <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="dQw4w9WgXcQ"></video>
+                </div>
+            </div>
+            <div class="video-nav">
+                <button onclick="prevVideoSlide()">Prev</button>
+                <button onclick="nextVideoSlide()">Next</button>
+            </div>
+        </div>
+        <div class="product-carousel">
+            <div class="product-track">
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3" alt="Chronograph Watch" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="9bZkp7q19f0"></video>
+                        <h3>Chronograph Watch</h3>
+                        <p>Swiss precision, $2,500</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1524592094714-0f0654e20314" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1508057198894-247b23fe5ade" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30" alt="Angle 3" loading="lazy">
+                        </div>
+                        <div class="three-d-viewer" id="watch1-3d"></div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Chronograph Watch', 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3', 'Swiss-crafted with sapphire crystal. $2,500', 'https://www.youtube.com/embed/9bZkp7q19f0', ['https://images.unsplash.com/photo-1524592094714-0f0654e20314', 'https://images.unsplash.com/photo-1508057198894-247b23fe5ade', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e" alt="Leather Tote" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+                        <h3>Leather Tote</h3>
+                        <p>Handcrafted elegance, $1,200</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1588117472013-59bb13edaf78" alt="Angle 3" loading="lazy">
+                        </div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Leather Tote', 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e', 'Premium leather with gold hardware. $1,200', 'https://www.youtube.com/embed/3tmd-ClpJxA', ['https://images.unsplash.com/photo-1590874103328-eac38a683ce7', 'https://images.unsplash.com/photo-1584917865442-de89df76afd3', 'https://images.unsplash.com/photo-1588117472013-59bb13edaf78'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1528798831550-1b5e3627ec36" alt="Diamond Necklace" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="dQw4w9WgXcQ"></video>
+                        <h3>Diamond Necklace</h3>
+                        <p>Timeless luxury, $3,000</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1608043152269-423dbba4e7e1" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1516321318428-638f77222e3e" alt="Angle 3" loading="lazy">
+                        </div>
+                        <div class="three-d-viewer" id="jewelry1-3d"></div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Diamond Necklace', 'https://images.unsplash.com/photo-1528798831550-1b5e3627ec36', '18k gold with ethically sourced diamonds. $3,000', 'https://www.youtube.com/embed/dQw4w9WgXcQ', ['https://images.unsplash.com/photo-1515562141207-7a88fb7ce338', 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1', 'https://images.unsplash.com/photo-1516321318428-638f77222e3e'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0" alt="Oud Perfume" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="tgbNymZ7vqY"></video>
+                        <h3>Oud Perfume</h3>
+                        <p>Exotic fragrance, $150</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1587017531366-9b7f585e16c8" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1611243983211-8766c4b255c7" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1590736969955-9d28b33d05e9" alt="Angle 3" loading="lazy">
+                        </div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Oud Perfume', 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0', 'Blend of oud and jasmine. $150', 'https://www.youtube.com/embed/tgbNymZ7vqY', ['https://images.unsplash.com/photo-1587017531366-9b7f585e16c8', 'https://images.unsplash.com/photo-1611243983211-8766c4b255c7', 'https://images.unsplash.com/photo-1590736969955-9d28b33d05e9'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1524592094714-0f0654e20314" alt="Pilot Watch" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="9bZkp7q19f0"></video>
+                        <h3>Pilot Watch</h3>
+                        <p>Aviation-inspired, $2,800</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1508057198894-247b23fe5ade" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1548169874-53e85f496f7e" alt="Angle 3" loading="lazy">
+                        </div>
+                        <div class="three-d-viewer" id="watch2-3d"></div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Pilot Watch', 'https://images.unsplash.com/photo-1524592094714-0f0654e20314', 'Aviation-inspired design. $2,800', 'https://www.youtube.com/embed/9bZkp7q19f0', ['https://images.unsplash.com/photo-1508057198894-247b23fe5ade', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30', 'https://images.unsplash.com/photo-1548169874-53e85f496f7e'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7" alt="Suede Clutch" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+                        <h3>Suede Clutch</h3>
+                        <p>Evening elegance, $1,500</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1588117472013-59bb13edaf78" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1594224457816-4a5d7ef97dc7" alt="Angle 3" loading="lazy">
+                        </div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Suede Clutch', 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7', 'Luxury suede with crystal accents. $1,500', 'https://www.youtube.com/embed/3tmd-ClpJxA', ['https://images.unsplash.com/photo-1584917865442-de89df76afd3', 'https://images.unsplash.com/photo-1588117472013-59bb13edaf78', 'https://images.unsplash.com/photo-1594224457816-4a5d7ef97dc7'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338" alt="Emerald Ring" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="dQw4w9WgXcQ"></video>
+                        <h3>Emerald Ring</h3>
+                        <p>Vibrant elegance, $2,000</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1608043152269-423dbba4e7e1" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1516321318428-638f77222e3e" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1589781719928-5a93cbce7a57" alt="Angle 3" loading="lazy">
+                        </div>
+                        <div class="three-d-viewer" id="jewelry2-3d"></div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Emerald Ring', 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338', '18k gold with emerald gemstone. $2,000', 'https://www.youtube.com/embed/dQw4w9WgXcQ', ['https://images.unsplash.com/photo-1608043152269-423dbba4e7e1', 'https://images.unsplash.com/photo-1516321318428-638f77222e3e', 'https://images.unsplash.com/photo-1589781719928-5a93cbce7a57'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1587017531366-9b7f585e16c8" alt="Rose Perfume" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="tgbNymZ7vqY"></video>
+                        <h3>Rose Perfume</h3>
+                        <p>Floral sophistication, $180</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1611243983211-8766c4b255c7" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1590736969955-9d28b33d05e9" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1608248558099-1b3df30b661b" alt="Angle 3" loading="lazy">
+                        </div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Rose Perfume', 'https://images.unsplash.com/photo-1587017531366-9b7f585e16c8', 'Rose and sandalwood blend. $180', 'https://www.youtube.com/embed/tgbNymZ7vqY', ['https://images.unsplash.com/photo-1611243983211-8766c4b255c7', 'https://images.unsplash.com/photo-1590736969955-9d28b33d05e9', 'https://images.unsplash.com/photo-1608248558099-1b3df30b661b'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1508057198894-247b23fe5ade" alt="Skeleton Watch" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="9bZkp7q19f0"></video>
+                        <h3>Skeleton Watch</h3>
+                        <p>Mechanical artistry, $3,500</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1548169874-53e85f496f7e" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1" alt="Angle 3" loading="lazy">
+                        </div>
+                        <div class="three-d-viewer" id="watch3-3d"></div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Skeleton Watch', 'https://images.unsplash.com/photo-1508057198894-247b23fe5ade', 'Open-work design with automatic movement. $3,500', 'https://www.youtube.com/embed/9bZkp7q19f0', ['https://images.unsplash.com/photo-1523275335684-37898b6baf30', 'https://images.unsplash.com/photo-1548169874-53e85f496f7e', 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3" alt="Crossbody Bag" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+                        <h3>Crossbody Bag</h3>
+                        <p>Versatile style, $900</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1588117472013-59bb13edaf78" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1594224457816-4a5d7ef97dc7" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c" alt="Angle 3" loading="lazy">
+                        </div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Crossbody Bag', 'https://images.unsplash.com/photo-1584917865442-de89df76afd3', 'Compact leather bag with adjustable strap. $900', 'https://www.youtube.com/embed/3tmd-ClpJxA', ['https://images.unsplash.com/photo-1588117472013-59bb13edaf78', 'https://images.unsplash.com/photo-1594224457816-4a5d7ef97dc7', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1608043152269-423dbba4e7e1" alt="Gold Bracelet" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="dQw4w9WgXcQ"></video>
+                        <h3>Gold Bracelet</h3>
+                        <p>Modern luxury, $2,500</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1516321318428-638f77222e3e" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1589781719928-5a93cbce7a57" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f" alt="Angle 3" loading="lazy">
+                        </div>
+                        <div class="three-d-viewer" id="jewelry3-3d"></div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Gold Bracelet', 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1', '18k gold with minimalist design. $2,500', 'https://www.youtube.com/embed/dQw4w9WgXcQ', ['https://images.unsplash.com/photo-1516321318428-638f77222e3e', 'https://images.unsplash.com/photo-1589781719928-5a93cbce7a57', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1611243983211-8766c4b255c7" alt="Citrus Perfume" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="tgbNymZ7vqY"></video>
+                        <h3>Citrus Perfume</h3>
+                        <p>Fresh vibrance, $200</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1590736969955-9d28b33d05e9" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1608248558099-1b3df30b661b" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1590736969955-9d28b33d05e9" alt="Angle 3" loading="lazy">
+                        </div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Citrus Perfume', 'https://images.unsplash.com/photo-1611243983211-8766c4b255c7', 'Citrus and bergamot blend. $200', 'https://www.youtube.com/embed/tgbNymZ7vqY', ['https://images.unsplash.com/photo-1590736969955-9d28b33d05e9', 'https://images.unsplash.com/photo-1608248558099-1b3df30b661b', 'https://images.unsplash.com/photo-1590736969955-9d28b33d05e9'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1548169874-53e85f496f7e" alt="Dive Watch" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="9bZkp7q19f0"></video>
+                        <h3>Dive Watch</h3>
+                        <p>Robust elegance, $3,000</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1524592094714-0f0654e20314" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30" alt="Angle 3" loading="lazy">
+                        </div>
+                        <div class="three-d-viewer" id="watch4-3d"></div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Dive Watch', 'https://images.unsplash.com/photo-1548169874-53e85f496f7e', 'Water-resistant with luminous markers. $3,000', 'https://www.youtube.com/embed/9bZkp7q19f0', ['https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1', 'https://images.unsplash.com/photo-1524592094714-0f0654e20314', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1588117472013-59bb13edaf78" alt="Velvet Bag" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+                        <h3>Velvet Bag</h3>
+                        <p>Luxury texture, $1,000</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1594224457816-4a5d7ef97dc7" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7" alt="Angle 3" loading="lazy">
+                        </div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Velvet Bag', 'https://images.unsplash.com/photo-1588117472013-59bb13edaf78', 'Soft velvet with gold chain. $1,000', 'https://www.youtube.com/embed/3tmd-ClpJxA', ['https://images.unsplash.com/photo-1594224457816-4a5d7ef97dc7', 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c', 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1589781719928-5a93cbce7a57" alt="Sapphire Earrings" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="dQw4w9WgXcQ"></video>
+                        <h3>Sapphire Earrings</h3>
+                        <p>Regal beauty, $2,800</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1608043152269-423dbba4e7e1" alt="Angle 3" loading="lazy">
+                        </div>
+                        <div class="three-d-viewer" id="jewelry4-3d"></div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Sapphire Earrings', 'https://images.unsplash.com/photo-1589781719928-5a93cbce7a57', '18k gold with sapphires. $2,800', 'https://www.youtube.com/embed/dQw4w9WgXcQ', ['https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f', 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338', 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1'])">Quick View</a>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1590736969955-9d28b33d05e9" alt="Amber Perfume" loading="lazy">
+                        <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="tgbNymZ7vqY"></video>
+                        <h3>Amber Perfume</h3>
+                        <p>Warm sophistication, $220</p>
+                        <div class="thumbnail-gallery">
+                            <img src="https://images.unsplash.com/photo-1608248558099-1b3df30b661b" alt="Angle 1" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1611243983211-8766c4b255c7" alt="Angle 2" loading="lazy">
+                            <img src="https://images.unsplash.com/photo-1587017531366-9b7f585e16c8" alt="Angle 3" loading="lazy">
+                        </div>
+                        <a href="#" class="cta-button" onclick="openQuickView('Amber Perfume', 'https://images.unsplash.com/photo-1590736969955-9d28b33d05e9', 'Amber and vanilla blend. $220', 'https://www.youtube.com/embed/tgbNymZ7vqY', ['https://images.unsplash.com/photo-1608248558099-1b3df30b661b', 'https://images.unsplash.com/photo-1611243983211-8766c4b255c7', 'https://images.unsplash.com/photo-1587017531366-9b7f585e16c8'])">Quick View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="product-nav">
+                <button onclick="prevProductSlide()">Prev</button>
+                <button onclick="nextProductSlide()">Next</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Brand Story -->
+    <section class="brand-story">
+        <div class="brand-story-content">
+            <h2>Our Legacy</h2>
+            <p>Led by CEO Niyonsaba Derrick, Don Delixe has redefined luxury since 2010, crafting timeless pieces with innovation and elegance.</p>
+            <div class="gallery-grid" style="margin-top: 2rem;">
+                <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1513696784203-0f3c8930a7a4')">
+                    <img src="https://images.unsplash.com/photo-1513696784203-0f3c8930a7a4" alt="First Store" loading="lazy">
+                </div>
+                <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1519227356660-2e719116c687')">
+                    <img src="https://images.unsplash.com/photo-1519227356660-2e719116c687" alt="Atelier" loading="lazy">
+                </div>
+                <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1511795409834-ef04bbd61622')">
+                    <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622" alt="Launch Event" loading="lazy">
+                </div>
+                <div class="gallery-item" onclick="openLightbox('https://www.youtube.com/embed/3tmd-ClpJxA')">
+                    <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+                </div>
+            </div>
+            <a href="#about" class="cta-button">Discover More</a>
+        </div>
+    </section>
+
+    <!-- Customer Spotlight -->
+    <section class="customer-spotlight">
+        <h2>Client Stories</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330" alt="Customer 1" loading="lazy">
+                <p>"Unmatched craftsmanship!"</p>
+                <h4>- Sarah M.</h4>
+            </div>
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d" alt="Customer 2" loading="lazy">
+                <p>"VIP service is exceptional."</p>
+                <h4>- Michael R.</h4>
+            </div>
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb" alt="Customer 3" loading="lazy">
+                <p>"Elegance in every detail."</p>
+                <h4>- Laura T.</h4>
+            </div>
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7" alt="Customer 4" loading="lazy">
+                <p>"A brand that inspires."</p>
+                <h4>- James K.</h4>
+            </div>
+        </div>
+    </section>
+
+    <!-- VIP Membership -->
+    <section class="vip-membership">
+        <h2>VIP Membership</h2>
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <p>Join our VIP Club for exclusive access to collections, bespoke designs, and private events.</p>
+                <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="tgbNymZ7vqY"></video>
+                <a href="#" class="cta-button" onclick="document.getElementById('vip-modal').style.display = 'flex'">Join Now</a>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <div class="gallery-grid">
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1519227356660-2e719116c687')">
+                        <img src="https://images.unsplash.com/photo-1519227356660-2e719116c687" alt="VIP Event" loading="lazy">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1511795409834-ef04bbd61622')">
+                        <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622" alt="VIP Launch" loading="lazy">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1517457373958-b7bdd4587205')">
+                        <img src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205" alt="VIP Pop-Up" loading="lazy">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1516321318428-638f77222e3e')">
+                        <img src="https://images.unsplash.com/photo-1516321318428-638f77222e3e" alt="VIP Styling" loading="lazy">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Event Highlights -->
+    <section class="event-highlights">
+        <h2>Upcoming Events</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622" alt="Winter Collection Launch" loading="lazy">
+                <h3>Winter Collection Launch</h3>
+                <p>Dec 10, 2025 - NYC</p>
+                <div class="event-countdown" id="countdown"></div>
+            </div>
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205" alt="Pop-Up Shop" loading="lazy">
+                <h3>Pop-Up Shop</h3>
+                <p>Jan 15-20, 2026 - Paris</p>
+            </div>
+            <div class="gallery-item">
+                <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+                <h3>VIP Gala</h3>
+                <p>Feb 5, 2026 - Dubai</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Media Feeds -->
+    <section class="social-feeds">
+        <h2>Connect with Us</h2>
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <h3>Instagram</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3')">
+                        <img src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3" alt="Post 1" loading="lazy">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e')">
+                        <img src="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e" alt="Post 2" loading="lazy">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('https://www.youtube.com/embed/9bZkp7q19f0')">
+                        <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="9bZkp7q19f0"></video>
+                    </div>
+                </div>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <h3>Twitter</h3>
+                <div class="gallery-grid">
+                    <div class="gallery-item" onclick="openLightbox('https://www.youtube.com/embed/dQw4w9WgXcQ')">
+                        <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="dQw4w9WgXcQ"></video>
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1511795409834-ef04bbd61622')">
+                        <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622" alt="Tweet Media" loading="lazy">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Page -->
+    <section id="about" style="display: none;">
+        <div class="breadcrumb"><a href="#home">Home</a> > About</div>
+        <h2>About Don Delixe</h2>
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <p>Since 2010, Don Delixe has crafted luxury under CEO Niyonsaba Derrick’s vision, blending innovation and tradition.</p>
+                <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <div class="gallery-grid">
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1513696784203-0f3c8930a7a4')">
+                        <img src="https://images.unsplash.com/photo-1513696784203-0f3c8930a7a4" alt="First Store" loading="lazy">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1519227356660-2e719116c687')">
+                        <img src="https://images.unsplash.com/photo-1519227356660-2e719116c687" alt="Atelier" loading="lazy">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 2rem;">
+            <h3>CEO Spotlight</h3>
+            <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7" alt="Niyonsaba Derrick" loading="lazy" style="width: 100%; max-width: 400px; border-radius: 10px;">
+            <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="tgbNymZ7vqY"></video>
+        </div>
+        <div style="margin-top: 2rem;">
+            <h3>Our Team</h3>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7" alt="Niyonsaba Derrick" loading="lazy">
+                    <h4>Niyonsaba Derrick, CEO</h4>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d" alt="John Smith" loading="lazy">
+                    <h4>John Smith, Lead Designer</h4>
+                </div>
+                <div class="gallery-item">
+                    <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="9bZkp7q19f0"></video>
+                    <h4>Team Introduction</h4>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shop Page -->
+    <section id="shop" style="display: none;">
+        <div class="breadcrumb"><a href="#home">Home</a> > Shop</div>
+        <h2>Shop Our Collections</h2>
+        <div class="gallery-grid" style="margin-bottom: 2rem;">
+            <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3')">
+                <img src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3" alt="Watches Banner" loading="lazy">
+                <h3>Watches</h3>
+            </div>
+            <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e')">
+                <img src="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e" alt="Bags Banner" loading="lazy">
+                <h3>Bags</h3>
+            </div>
+            <div class="gallery-item" onclick="openLightbox('https://www.youtube.com/embed/dQw4w9WgXcQ')">
+                <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="dQw4w9WgXcQ"></video>
+                <h3>Jewelry</h3>
+            </div>
+            <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0')">
+                <img src="https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0" alt="Perfumes Banner" loading="lazy">
+                <h3>Perfumes</h3>
+            </div>
+        </div>
+        <div class="shop-filters">
+            <select onchange="filterProducts()">
+                <option value="all">All Categories</option>
+                <option value="watches">Watches</option>
+                <option value="bags">Bags</option>
+                <option value="jewelry">Jewelry</option>
+                <option value="perfumes">Perfumes</option>
+            </select>
+            <select onchange="filterProducts()">
+                <option value="featured">Sort: Featured</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+            </select>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;" id="product-list">
+            <div class="card" data-category="watches" data-price="2500">
+                <img src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3" alt="Chronograph Watch" loading="lazy">
+                <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="9bZkp7q19f0"></video>
+                <h3>Chronograph Watch</h3>
+                <p>Swiss precision, $2,500</p>
+                <div class="thumbnail-gallery">
+                    <img src="https://images.unsplash.com/photo-1524592094714-0f0654e20314" alt="Angle 1" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1508057198894-247b23fe5ade" alt="Angle 2" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30" alt="Angle 3" loading="lazy">
+                </div>
+                <a href="#" class="cta-button" onclick="openQuickView('Chronograph Watch', 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3', 'Swiss-crafted with sapphire crystal. $2,500', 'https://www.youtube.com/embed/9bZkp7q19f0', ['https://images.unsplash.com/photo-1524592094714-0f0654e20314', 'https://images.unsplash.com/photo-1508057198894-247b23fe5ade', 'https://images.unsplash.com/photo-1523275335684-37898b6baf30'])">Quick View</a>
+            </div>
+            <!-- Repeat for other products with similar structure, updating images and videos -->
+            <div class="card" data-category="bags" data-price="1200">
+                <img src="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e" alt="Leather Tote" loading="lazy">
+                <video controls loop muted class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+                <h3>Leather Tote</h3>
+                <p>Handcrafted elegance, $1,200</p>
+                <div class="thumbnail-gallery">
+                    <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7" alt="Angle 1" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1584917865442-de89df76afd3" alt="Angle 2" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1588117472013-59bb13edaf78" alt="Angle 3" loading="lazy">
+                </div>
+                <a href="#" class="cta-button" onclick="openQuickView('Leather Tote', 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e', 'Premium leather with gold hardware. $1,200', 'https://www.youtube.com/embed/3tmd-ClpJxA', ['https://images.unsplash.com/photo-1590874103328-eac38a683ce7', 'https://images.unsplash.com/photo-1584917865442-de89df76afd3', 'https://images.unsplash.com/photo-1588117472013-59bb13edaf78'])">Quick View</a>
+            </div>
+            <!-- Add remaining 14 products similarly -->
+        </div>
+    </section>
+
+    <!-- Collections Page -->
+    <section id="collections" style="display: none;">
+        <div class="breadcrumb"><a href="#home">Home</a> > Collections</div>
+        <h2>Curated Collections</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3" alt="Seasonal Collection" loading="lazy">
+                <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="9bZkp7q19f0"></video>
+                <h3>Seasonal Collection</h3>
+                <p>Winter 2025 elegance.</p>
+                <a href="#shop" class="cta-button">Shop Now</a>
+            </div>
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1528798831550-1b5e3627ec36" alt="Limited Edition" loading="lazy">
+                <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="dQw4w9WgXcQ"></video>
+                <h3>Limited Edition</h3>
+                <p>Exclusive designs.</p>
+                <a href="#shop" class="cta-button">Shop Now</a>
+            </div>
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1547471080-7cc2caa01a7e" alt="Heritage Collection" loading="lazy">
+                <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="3tmd-ClpJxA"></video>
+                <h3>Heritage Collection</h3>
+                <p>Timeless classics.</p>
+                <a href="#shop" class="cta-button">Shop Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sustainability Page -->
+    <section id="sustainability" style="display: none;">
+        <div class="breadcrumb"><a href="#home">Home</a> > Sustainability</div>
+        <h2>Our Commitment</h2>
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <p>Ethical sourcing and sustainable practices define our legacy.</p>
+                <video controls class="plyr" data-plyr-provider="youtube" data-plyr-embed-id="tgbNymZ7vqY"></video>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <div class="gallery-grid">
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1503614472-8c93ca36fc60')">
+                        <img src="https://images.unsplash.com/photo-1503614472-8c93ca36fc60" alt="Ethical Sourcing" loading="lazy">
+                    </div>
+                    <div class="gallery-item" onclick="openLightbox('https://images.unsplash.com/photo-1516321318428-638f77222e3e')">
+                        <img src="https://images.unsplash.com/photo-1516321318428-638f77222e3e" alt="Recyclable Packaging" loading="lazy
